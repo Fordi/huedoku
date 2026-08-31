@@ -1,0 +1,5 @@
+# Files ignored by the project
+coverage
+node_modules
+*.sqlite3
+.env

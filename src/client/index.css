@@ -1,0 +1,197 @@
+/* global stylesheet */
+:root {
+  background: #222;
+  color: #eee;
+  font-family: "Ubuntu Sans", sans-serif;
+  font-size: calc(sqrt(1vh * 1vw));
+}
+.dashboard {
+  margin-top: 3.2em;
+}
+.dashboard-header {
+  position: fixed;
+  height: 3.2em;
+  top: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.dashboard-header > h1 {
+  margin: 0;
+}
+.whoami {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  line-height: 1.2em;
+  position: relative;
+  align-items: flex-end;
+}
+.whoami .avatar {
+  height: 100%;
+  margin-right: 0.5em;
+  border-radius: 1.6em;
+  corner-shape: squircle;
+}
+.whoami button {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  color: inherit;
+  cursor: pointer;
+}
+.role-badge {
+  font-size: 0.8em;
+}
+.widgets {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  max-width: 800px;
+  background: #333;
+  border-radius: 3em;
+  corner-shape: squircle;
+  box-shadow: 0.125em 0.125em 0.5em 0 rgba(0, 0, 0, 0.5);
+}
+.widget {
+  background: #444;
+  box-shadow: 0.125em 0.125em 0.5em 0 rgba(0, 0, 0, 0.5);
+  corner-shape: squircle;
+  border-radius: 1em;
+  margin: 2.5em 1em 1em;
+  padding: 0.25em 0.5em;
+  position: relative;
+}
+.widget > h2 {
+  font-size: 1.5em;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 100;
+  margin: 0 0 0.5em;
+  position: absolute;
+  top: -1.25em;
+  right: 0.25em;
+  text-shadow: 0.0625em 0.0625em 0.0625em black;
+  cursor: pointer;
+}
+.widget > h2:before {
+  content: ">";
+  display: inline-block;
+  transition:
+    transform 0.4s,
+    text-shadow 0.4s;
+}
+.widget.widget--open > h2:before {
+  transform: rotate(90deg);
+  text-shadow: 0.0625em -0.0625em 0.0625em black;
+}
+
+.widget h3 {
+  font-size: 1.25em;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 200;
+  margin: 0 0 0.5em;
+  text-align: right;
+}
+.widget .widget-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s;
+}
+.widget.widget--open .widget-content {
+  grid-template-rows: 1fr;
+}
+.widget-content > .widget-content-height {
+  overflow: hidden;
+}
+
+.widget table {
+  width: 100%;
+  /* Long unbroken cell content (a magnet link, a long URL, ...) has nowhere
+     to wrap, so without this the table would rather grow past the widget's
+     own width than let a single cell truncate. table-layout: fixed makes
+     column widths respect the content-based sizing browsers compute up
+     front instead of continuing to stretch for one oversized cell. */
+  table-layout: fixed;
+}
+.resource-table td {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field {
+  display: block;
+  margin-bottom: 0.75em;
+}
+.field-label {
+  display: block;
+  font-size: 0.9em;
+  opacity: 0.8;
+  margin-bottom: 0.2em;
+}
+.field-required {
+  color: #e88;
+}
+.field-control input,
+.field-control select,
+.field-control textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #222;
+  color: inherit;
+}
+.field-hint {
+  font-size: 0.8em;
+  opacity: 0.65;
+  margin: 0.2em 0 0;
+}
+.field-error {
+  font-size: 0.85em;
+  color: #e88;
+  margin: 0.2em 0 0;
+}
+.field--invalid .field-control input,
+.field--invalid .field-control select,
+.field--invalid .field-control textarea {
+  border-color: #e88;
+}
+.field--inline .field-label--inline {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4em;
+}
+.field--inline .field-control {
+  display: inline-flex;
+}
+.field--inline .field-control input {
+  width: auto;
+}
+
+th {
+  white-space: nowrap;
+}
+.live-downloads {
+  display: table;
+  margin-block-start: 0;
+  padding-inline-start: 0;
+}
+.live-download {
+  display: table-row;
+}
+.live-download > span {
+  display: table-cell;
+}
+.resource-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
