@@ -1,2 +1,1 @@
-recurse: false
-description: real Express app + sqlite in-memory DB via knex
+description: real Express app, driven via supertest

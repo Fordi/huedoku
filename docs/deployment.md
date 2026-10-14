@@ -15,8 +15,7 @@ Variables already present in `process.env` are never overridden by a loaded file
 The app can run as a **user-level** systemd service via [`sdn`](https://github.com/Fordi/sdn#sdn) (`@fordi-org/sdn`), a zero-config wrapper that generates a unit file from `package.json` and links it with `systemctl --user`. See sdn's own README for what it is and its full verb list (`install`, `uninstall`, `control <verb>`, `logs`); this repo only scripts the common path as `svc:*` in `package.json`:
 
 ```sh
-cp .env.example .env
-# fill in SESSION_SECRET, GITHUB_CLIENT_ID/SECRET, ADMIN_GITHUB_LOGINS, DATABASE_URL
+cp .env.example .env   # optional: PORT, BASE_PATH
 npm install
 npm run svc:install   # generates and links the unit
 npm run svc:start
@@ -38,14 +37,22 @@ loginctl enable-linger "$USER"      # let user units run without an active login
 
 Without `enable-linger`, the service stops as soon as your last session for that user logs out - fine for a quick foreground test via `svc:start`, not for a real deployment. From here, ordinary `systemctl --user` / `journalctl --user-unit` verbs (`status`, `restart`, `stop`, ...) work directly against the unit (named by `name` in package.json) - see `man systemctl`, or [sdn's README](https://github.com/Fordi/sdn#sdn) for its `sdn control <verb>` pass-through shorthand.
 
-### Migrations under systemd
+## Deploying as a static site
 
-There's no automated migration step chained before a restart - `src/index.ts`'s own **first-boot auto-migration** (see [Operational notes](#operational-notes) below) still covers a fresh database automatically, but upgrading an already-initialized deployment needs an explicit, separate step:
+The game itself needs no server: everything runs in the browser. `npm run build` bundles `src/client` with esbuild into `dist/` (or `npm run build -- some/dir`), ready for any static host - GitHub Pages, Netlify, an S3 bucket, nginx `root`, `python3 -m http.server`:
 
 ```sh
-npm run migrate
-npx @fordi-org/sdn control restart
+npm run build
+npx serve dist   # or any static file server, to try it locally
 ```
+
+What the build ([src/web/staticBuild.ts](../src/web/staticBuild.ts)) does:
+
+- **HTML** - drops the `<script type="importmap">` (npm packages are bundled in instead) and points each `<script src="*.ts">` at its bundled `.js`. Any other `${...}` template interpolation fails the build, since there's no server to evaluate it.
+- **Scripts** - each one is bundled, minified, with a linked source map. A worker referenced as `new URL("./x.ts", import.meta.url)` is bundled as its own `x.js`, and the reference rewritten to match. Output is flat, so entry and worker file names must be unique.
+- **Everything else** (CSS, the favicon) is copied as-is; dotfiles are skipped.
+
+All paths are relative, so `dist/` works from any URL prefix without configuration.
 
 ## Serving under a path prefix
 
@@ -57,17 +64,7 @@ BASE_PATH=/my-app
 
 What this affects:
 
-- Every REST route is mounted under the prefix (`GET /my-app/config`, not `GET /config`) - requests to the unprefixed path get a normal `404`, they're not silently accepted.
-- The session cookie's `path` is scoped to the prefix, so it isn't sent on requests to other apps sharing the same domain.
-- WebSocket upgrade requests are only accepted on the configured prefix; an upgrade attempt outside it is rejected at the socket level before authentication even runs.
-- The post-login HTML redirect (after a successful GitHub OAuth callback) goes to `{BASE_PATH}/` instead of `/`.
-
-**`GITHUB_CALLBACK_URL` must include the prefix yourself** - it's a full absolute URL you configure independently (and it must match what you registered in the GitHub OAuth App), e.g.:
-
-```
-BASE_PATH=/my-app
-GITHUB_CALLBACK_URL=https://example.com/my-app/auth/github/callback
-```
+- The client and every REST route are mounted under the prefix (`GET /my-app/index.css`, not `GET /index.css`) - requests to the unprefixed path get a normal `404`, they're not silently accepted.
 
 ### Example nginx config
 
@@ -95,14 +92,4 @@ Because the app's own routing already expects the `BASE_PATH` prefix, `proxy_pas
 | ---------------------- | -------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `NODE_ENV`             | no       | `development`        | `development \| test \| production`                                                                                                    |
 | `PORT`                 | no       | `3000`               |                                                                                                                                        |
-| `SESSION_SECRET`       | **yes**  | -                    | Min 16 chars. Signs the session cookie; rotating it logs everyone out.                                                                 |
-| `GITHUB_CLIENT_ID`     | **yes**  | -                    | From your GitHub OAuth App.                                                                                                            |
-| `GITHUB_CLIENT_SECRET` | **yes**  | -                    | From your GitHub OAuth App.                                                                                                            |
-| `GITHUB_CALLBACK_URL`  | **yes**  | -                    | Must exactly match the OAuth App's configured callback URL, including `BASE_PATH` if set.                                              |
-| `DATABASE_URL`         | **yes**  | -                    | Its scheme selects the driver (`mysql://` / `postgres://` / a relative sqlite path / `:memory:`). See [docs/database.md](database.md). |
-| `ADMIN_GITHUB_LOGINS`  | no       | _(empty)_            | Comma-separated GitHub logins bootstrapped to `admin` on first login. See [docs/auth.md](auth.md#becoming-an-administrator).           |
 | `BASE_PATH`            | no       | _(empty, no prefix)_ | Mounts the whole API under a path prefix. See above.                                                                                   |
-
-## Operational notes
-
-- **First-boot auto-migration**: `src/index.ts` checks whether the `config` table exists on startup and runs `knex.migrate.latest()` automatically if not, so a fresh database self-initializes on first `npm start`/container boot. `npm run migrate` remains the explicit way to apply new migrations to an already-initialized database after an upgrade.

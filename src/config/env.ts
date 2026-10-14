@@ -1,36 +1,28 @@
 // configuration from the environment
-import { z } from "zod";
+// import { z } from "zod";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import * as v from "@fordi-org/valid";
 
-const schema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().positive().default(3000),
-  SESSION_SECRET: z.string().min(16),
-  GITHUB_CLIENT_ID: z.string().min(1),
-  GITHUB_CLIENT_SECRET: z.string().min(1),
-  GITHUB_CALLBACK_URL: z.string().url(),
-  DB_CLIENT: z.enum(["mysql2", "pg", "better-sqlite3"]).default("mysql2"),
-  DATABASE_URL: z.string().optional(),
-  DB_HOST: z.string().optional(),
-  DB_PORT: z.coerce.number().int().positive().optional(),
-  DB_USER: z.string().optional(),
-  DB_PASSWORD: z.string().optional(),
-  DB_NAME: z.string().optional(),
-  ADMIN_GITHUB_LOGINS: z.string().default(""),
-  BASE_PATH: z.string().default(""),
+// const schema = z.object({
+//   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+//   PORT: z.coerce.number().int().positive().default(3000),
+//   BASE_PATH: z.string().default(""),
+// });
+
+const schema = v.struct({
+  NODE_ENV: v.string.matches(/^(development|test|production)/),
+  PORT: v.integer.atLeast(0),
+  BASE_PATH: v.string,
 });
 
-export type AppConfig = z.infer<typeof schema> & {
-  adminGithubLogins: string[];
-  basePath: string;
-};
+export type AppConfig = NonNullable<ReturnType<typeof schema>>;
 
 /**
  * Normalizes a configured base path to either "" (no prefix) or a form with
  * a leading slash and no trailing slash, e.g. "my-app" / "/my-app/" -> "/my-app".
  * Keeping this normalization in one place means every consumer (route mounting,
- * cookie path, WS upgrade path check) agrees on the exact same prefix string.
+ * WS upgrade path check) agrees on the exact same prefix string.
  */
 function normalizeBasePath(raw: string): string {
   const trimmed = raw.trim().replace(/\/+$/, "");
@@ -67,26 +59,24 @@ export function loadEnvFile(projectRootUrl: URL): void {
   }
 }
 
-let cached: AppConfig | undefined;
+let cached: (AppConfig & { basePath: AppConfig["BASE_PATH"] }) | undefined;
 
-export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppConfig {
+export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
   if (cached) return cached;
-  const parsed = schema.safeParse(source);
-  if (!parsed.success) {
+  let parsed;
+  try {
+    parsed = schema(source);
+  } catch (error) {
     console.error(
       "Invalid environment configuration:",
-      parsed.error.flatten().fieldErrors,
+      error,
     );
     process.exit(1);
-    throw new Error("unreachable");
   }
-  const data = parsed.data;
+  const data = parsed as unknown as AppConfig;
   cached = {
     ...data,
-    adminGithubLogins: data.ADMIN_GITHUB_LOGINS.split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-    basePath: normalizeBasePath(data.BASE_PATH),
+    basePath: normalizeBasePath(data.BASE_PATH ?? ""),
   };
   return cached;
 }

@@ -1,55 +1,325 @@
 /* global stylesheet */
 :root {
+  /* no double-tap-to-zoom anywhere (fast double-taps are a game move);
+     pinch-zoom still works */
+  touch-action: manipulation;
   background: #222;
   color: #eee;
   font-family: "Ubuntu Sans", sans-serif;
   font-size: calc(sqrt(1vh * 1vw));
 }
-.dashboard {
-  margin-top: 3.2em;
+.app-header {
+  text-align: center;
 }
-.dashboard-header {
-  position: fixed;
-  height: 3.2em;
-  top: 0;
-  left: 0;
-  right: 0;
-  overflow: hidden;
+.app-header > h1 {
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 200;
+  margin: 0.5em 0;
+}
+
+.huedoku {
+  --board: min(92vw, 70vh, 640px);
+  width: var(--board);
+  margin: 0 auto;
+}
+.hd-toolbar {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-.dashboard-header > h1 {
-  margin: 0;
-}
-.whoami {
-  display: flex;
-  flex-direction: column;
   flex-wrap: wrap;
-  line-height: 1.2em;
-  position: relative;
-  align-items: flex-end;
+  align-items: center;
+  gap: 0.75em;
+  margin-bottom: 0.75em;
 }
-.whoami .avatar {
-  height: 100%;
-  margin-right: 0.5em;
-  border-radius: 1.6em;
-  corner-shape: squircle;
-}
-.whoami button {
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  position: absolute;
-  bottom: 0;
-  right: 0;
+.hd-toolbar select,
+.hd-toolbar button {
+  background: #333;
   color: inherit;
+  border: 1px solid #555;
+  border-radius: 0.3em;
+  padding: 0.2em 0.5em;
+  font: inherit;
+}
+.hd-score {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.hd-score::after {
+  content: " pts";
+  opacity: 0.6;
+}
+.hd-lives {
+  color: #e66;
+  letter-spacing: 0.1em;
+}
+.hd-grid {
+  --cell: calc(var(--board) / var(--size));
+  --gap: calc(var(--cell) * 0.1);
+  display: grid;
+  grid-template-columns: repeat(var(--size), 1fr);
+  grid-template-rows: repeat(var(--size), 1fr);
+  gap: var(--gap);
+  padding: var(--gap);
+  box-sizing: border-box;
+  width: var(--board);
+  height: var(--board);
+  background: #1b1b1b;
+  border-radius: calc(var(--cell) * 0.5);
+  corner-shape: squircle;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+  /* drags paint cells rather than scrolling/selecting on touch screens */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* the grid, plus the "Nice move!" effects layered behind and over it */
+.hd-board {
+  position: relative;
+  isolation: isolate;
+}
+.hd-shimmer {
+  position: absolute;
+  inset: -3%;
+  z-index: -1;
+  border-radius: 12%;
+  background: conic-gradient(from 0deg, var(--colors));
+  filter: blur(14px);
+  pointer-events: none;
+  animation: hd-shimmer 1.6s ease-out both;
+}
+@keyframes hd-shimmer {
+  from {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.96);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+    transform: rotate(120deg) scale(1.02);
+  }
+}
+.hd-nice {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  margin: 0;
+  white-space: nowrap;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 500;
+  font-size: calc(var(--board) / 9);
+  color: #fff6c8;
+  text-shadow:
+    0 0 12px rgba(242, 201, 76, 0.9),
+    0 3px 8px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  animation: hd-nice 1.6s ease-out both;
+}
+@keyframes hd-nice {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -80%) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hd-shimmer {
+    display: none;
+  }
+  .hd-nice {
+    animation-name: hd-fade-in-out;
+  }
+}
+@keyframes hd-fade-in-out {
+  from,
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+  20%,
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+.hd-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 32%;
+  corner-shape: squircle;
+  /* --shade tints the tile without dimming its marker */
+  --shade: transparent;
+  /* soft top-left light and bottom shade, so tiles read as raised */
+  background:
+    linear-gradient(var(--shade), var(--shade)),
+    linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0) 45%,
+      rgba(0, 0, 0, 0.2)
+    ),
+    var(--cell-color);
+  box-shadow:
+    0 calc(var(--gap) * 0.25) calc(var(--gap) * 0.6) rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition:
+    transform 0.12s,
+    filter 0.12s;
+}
+@media (hover: hover) {
+  .huedoku--playing .hd-cell:hover {
+    filter: brightness(1.1);
+  }
+}
+.hd-cell:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+.hd-icon {
+  width: 78%;
+  height: 78%;
+  overflow: visible;
+  pointer-events: none;
+}
+.hd-icon path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hd-icon-halo {
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 6;
+}
+.hd-icon-mark {
+  stroke: #111;
+  stroke-width: 3;
+}
+.hd-cell--wrong {
+  --shade: rgba(20, 0, 0, 0.55);
+  box-shadow:
+    inset 0 0 0 calc(var(--gap) * 0.5) #ff3b3b,
+    0 0 calc(var(--gap) * 1.5) rgba(255, 59, 59, 0.6);
+}
+.hd-cell--wrong .hd-icon-halo {
+  stroke: #fff;
+  stroke-width: 7;
+}
+.hd-cell--wrong .hd-icon-mark {
+  stroke: #e01010;
+  stroke-width: 4;
+}
+.hd-cell--found {
+  z-index: 1;
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 calc(var(--gap) * 0.45) #fff,
+    0 0 calc(var(--gap) * 2.5) calc(var(--gap) * 0.5) rgba(255, 230, 120, 0.85);
+}
+.hd-cell--found .hd-icon,
+.hd-cell--revealed .hd-icon {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+}
+.hd-cell--found .hd-icon path {
+  fill: #fff;
+}
+.hd-cell--found .hd-icon-halo {
+  stroke: #b8860b;
+  stroke-width: 3;
+}
+.hd-cell--found .hd-icon-mark {
+  stroke: #fff;
+  stroke-width: 1;
+}
+.hd-cell--revealed {
+  z-index: 1;
+  animation: hd-pulse 0.9s ease-in-out infinite alternate;
+}
+.hd-cell--revealed .hd-icon-halo {
+  stroke: #111;
+  stroke-width: 4.5;
+}
+.hd-cell--revealed .hd-icon-mark {
+  stroke: #fff;
+  stroke-width: 2;
+}
+@keyframes hd-pulse {
+  to {
+    transform: scale(1.08);
+    filter: brightness(1.3);
+  }
+}
+.huedoku--won .hd-cell,
+.huedoku--lost .hd-cell {
+  cursor: default;
+}
+.hd-footer {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-top: 0.75em;
+}
+/* Undo (lower left) and Restart (lower right) */
+.hd-tool {
+  /* at least the size of a cell on an 8x8 board */
+  flex: none;
+  --undo: max(calc(var(--board) / 8), 48px);
+  width: var(--undo);
+  height: var(--undo);
+  padding: calc(var(--undo) * 0.2);
+  border: none;
+  border-radius: 32%;
+  corner-shape: squircle;
+  background: linear-gradient(160deg, #555, #383838);
+  color: #eee;
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   cursor: pointer;
 }
-.role-badge {
-  font-size: 0.8em;
+.hd-tool svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
+.hd-tool:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+.hd-tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.hd-message {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  opacity: 0.85;
+}
+
 .widgets {
   display: flex;
   flex-direction: column;
@@ -194,4 +464,189 @@ th {
 .resource-table th.sortable {
   cursor: pointer;
   user-select: none;
+}
+
+.hd-level {
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 300;
+}
+.huedoku--loading .hd-grid {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.hd-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+  /* a beat to take in the final board before the dialog lands */
+  animation: hd-fade-in 0.3s 0.6s both;
+}
+.hd-dialog {
+  min-width: min(20em, 100%);
+  padding: 1.5em 2em;
+  text-align: center;
+  background: linear-gradient(160deg, #3c3c3c, #2a2a2a);
+  border-radius: 2em;
+  corner-shape: squircle;
+  box-shadow:
+    0 1em 3em rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  animation: hd-pop-in 0.35s 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.hd-dialog h2 {
+  margin: 0 0 0.25em;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 300;
+  font-size: 2em;
+}
+.huedoku--won .hd-dialog h2 {
+  color: #8e8;
+}
+.huedoku--lost .hd-dialog h2 {
+  color: #e88;
+}
+.hd-dialog p {
+  margin: 0 0 1.25em;
+  opacity: 0.85;
+}
+.hd-dialog p.hd-stars {
+  margin: 0 0 0.25em;
+  font-size: 2.5em;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  color: #f2c94c;
+  opacity: 1;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.hd-star {
+  display: inline-block;
+  /* each earned star pulses in turn once the dialog has landed */
+  animation: hd-star-pulse 1.8s calc(1s + var(--i) * 0.2s) ease-in-out infinite;
+}
+.hd-star--empty {
+  color: #777;
+  animation: none;
+}
+@keyframes hd-star-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.15);
+    filter: brightness(1.35) drop-shadow(0 0 6px rgba(242, 201, 76, 0.7));
+  }
+}
+
+/* a perfect game: particles fly out from behind the dialog */
+.hd-backdrop .hd-dialog {
+  position: relative;
+  z-index: 1;
+}
+.hd-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+.hd-burst span {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2);
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 8px var(--color);
+  /* starts as the dialog pops in */
+  animation: hd-burst 1.4s calc(0.75s + var(--delay))
+    cubic-bezier(0.1, 0.7, 0.3, 1) both;
+}
+@keyframes hd-burst {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--dx), calc(var(--dy) + 6vmin)) scale(0.3);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hd-star,
+  .hd-burst span {
+    animation: none;
+  }
+  .hd-burst {
+    display: none;
+  }
+}
+.hd-dialog button {
+  font: inherit;
+  font-size: 1.2em;
+  padding: 0.6em 1.6em;
+  border: none;
+  border-radius: 1em;
+  corner-shape: squircle;
+  color: #111;
+  background: linear-gradient(160deg, #fff6c8, #f2c94c);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+.huedoku--lost .hd-dialog button {
+  background: linear-gradient(160deg, #ffd6d6, #e88);
+}
+.hd-backdrop--now,
+.hd-backdrop--now .hd-dialog {
+  /* the player asked for this one, so no pause */
+  animation-delay: 0s;
+}
+.hd-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75em;
+}
+.hd-dialog button.hd-secondary {
+  color: inherit;
+  background: linear-gradient(160deg, #555, #444);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.hd-dialog button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+@keyframes hd-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes hd-pop-in {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+
+.hd-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.hd-spinner button {
+  min-width: 2.2em;
+  min-height: 2.2em;
 }

@@ -1,18 +1,16 @@
 {
-  "name": "my-app",
+  "name": "huedoku",
   "version": "0.0.1",
-  "description": "My awesome web app",
+  "description": "Solve a grid of colors with two rules: one winner per row/column/color; winners cannot touch.",
   "main": "bin/start.ts",
   "bin": "bin/start.ts",
-  "exports": {
-    "node": "./src/index.ts"
-  },
   "engines": {
     "node": ">=24.18.0"
   },
   "scripts": {
     "preinstall": "node bin/sync-web-dependencies.ts || npm i",
     "start": "node --watch bin/start.ts",
+    "build": "node bin/build-static.ts",
     "test": "node --test",
     "only": "node --test --test-only",
     "coverage": "c8 --reporter=html --reporter=lcov --all --include 'src/**' --exclude 'test/**' --exclude 'migrations/**' node --test",
@@ -21,57 +19,45 @@
     "lint:fix": "eslint . --fix; node bin/generate-project-layout.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "migrate": "knex migrate:latest",
-    "migrate:make": "knex migrate:make",
-    "seed": "knex seed:run",
-    "svc:start": "npx @fordi-org/sdn control start",
-    "svc:logs": "npx @fordi-org/sdn logs",
-    "svc:stop": "npx @fordi-org/sdn control stop",
-    "svc:install": "npx @fordi-org/sdn install --force"
+    "publish": "npm run build && scp dist/* fordi.org:www/fordi.org/huedoku"
   },
   "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fordi-org/sdn": "^0.0.6",
-    "cookie-session": "^2.1.1",
-    "esbuild": "^0.28.1",
-    "express": "^5.2.1",
+    "@fordi-org/valid": "^1.0.0",
+    "esbuild": "^0.28.2",
+    "express": "^5.3.0",
     "htm": "^3.1.1",
-    "knex": "^3.3.0",
-    "mysql2": "^3.23.1",
-    "pg": "^8.22.0",
-    "preact": "^10.29.7",
-    "ws": "^8.21.1",
-    "zod": "^4.4.3"
+    "preact": "^10.29.8",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@testing-library/preact": "^3.2.4",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/cookie-session": "^2.0.49",
+    "@testing-library/user-event": "^14.6.8",
     "@types/express": "^5.0.6",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.6.5",
     "@types/supertest": "^7.2.1",
-    "@types/ws": "^8.18.1",
+    "@types/ws": "^8.18.2",
     "c8": "^12.0.0",
-    "eslint": "^10.8.0",
+    "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "happy-dom": "^20.11.1",
-    "prettier": "^3.9.6",
-    "supertest": "^7.2.2",
+    "happy-dom": "^20.14.6",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.65.0",
-    "yaml": "^2.9.0"
+    "typescript-eslint": "^8.71.2",
+    "yaml": "^2.9.1"
   },
   "webDependencies": {
-    "preact": "^10.29.7",
+    "preact": "^10.29.8",
     "preact/hooks": true,
     "htm": "^3.1.1",
     "htm/preact": true,
-    "zod": "^4.4.3"
+    "@fordi-org/valid": "^1.0.0"
   },
   "nodemonConfig": {
     "execMap": {
@@ -79,6 +65,6 @@
     }
   },
   "allowScripts": {
-    "esbuild@0.28.1": true
+    "esbuild@0.28.2": true
   }
 }

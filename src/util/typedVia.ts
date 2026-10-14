@@ -50,7 +50,7 @@ export type TypedRequestHandler<
  * receives the full request, exactly as via()'s own handler would, except
  * that body/params/query/headers (wherever you declared fields for them) are
  * replaced with their validated, typed values - everything else on the
- * request (method, path, session, principal, cookies, etc.) passes through
+ * request (method, path, cookies, etc.) passes through
  * untouched, just like a plain via() handler.
  *
  * A validation failure on any declared source throws a BadRequestError

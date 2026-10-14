@@ -1,5 +1,6 @@
 # Files ignored by the project
 coverage
+dist
 node_modules
-*.sqlite3
 .env
+dist/

@@ -9,9 +9,9 @@ export default tseslint.config(
     ignores: [
       "node_modules/**",
       "coverage/**",
+      "dist/**",
       "staging/**",
       "libraries/**",
-      "*.sqlite3",
       "eslint.config.js",
     ],
   },
