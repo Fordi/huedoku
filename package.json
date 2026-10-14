@@ -1,6 +1,6 @@
 {
   "name": "huedoku",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Solve a grid of colors with two rules: one winner per row/column/color; winners cannot touch.",
   "main": "bin/start.ts",
   "bin": "bin/start.ts",

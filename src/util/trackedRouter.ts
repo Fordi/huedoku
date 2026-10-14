@@ -1,5 +1,9 @@
 // Helper to make API discoverable from router
-import { Router, type Router as ExpressRouter, type RequestHandler } from "express";
+import {
+  Router,
+  type Router as ExpressRouter,
+  type RequestHandler,
+} from "express";
 
 const mountsByRouter = new WeakMap<
   ExpressRouter,
@@ -20,7 +24,9 @@ const mountsByRouter = new WeakMap<
  * and only to record the mount - the real .use() call still happens, so
  * request handling behaves identically to a plain Router().
  */
-export function TrackedRouter(...args: Parameters<typeof Router>): ExpressRouter {
+export function TrackedRouter(
+  ...args: Parameters<typeof Router>
+): ExpressRouter {
   const router = Router(...args);
   mountsByRouter.set(router, []);
 

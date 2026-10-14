@@ -1,34 +1,14 @@
 // configuration from the environment
-// import { z } from "zod";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import * as v from "@fordi-org/valid";
+import { struct, string, integer } from "@fordi-org/valid";
 
-// const schema = z.object({
-//   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-//   PORT: z.coerce.number().int().positive().default(3000),
-//   BASE_PATH: z.string().default(""),
-// });
-
-const schema = v.struct({
-  NODE_ENV: v.string.matches(/^(development|test|production)/),
-  PORT: v.integer.atLeast(0),
-  BASE_PATH: v.string,
+const schema = struct({
+  NODE_ENV: string.matches(/^(development|test|production)/),
+  PORT: integer.atLeast(0),
 });
 
 export type AppConfig = NonNullable<ReturnType<typeof schema>>;
-
-/**
- * Normalizes a configured base path to either "" (no prefix) or a form with
- * a leading slash and no trailing slash, e.g. "my-app" / "/my-app/" -> "/my-app".
- * Keeping this normalization in one place means every consumer (route mounting,
- * WS upgrade path check) agrees on the exact same prefix string.
- */
-function normalizeBasePath(raw: string): string {
-  const trimmed = raw.trim().replace(/\/+$/, "");
-  if (trimmed === "") return "";
-  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-}
 
 /**
  * Prefers a NODE_ENV-specific env file (e.g. .env.production) over the plain
@@ -44,7 +24,10 @@ function normalizeBasePath(raw: string): string {
  * `new URL("../", import.meta.url)`.
  */
 export function loadEnvFile(projectRootUrl: URL): void {
-  for (const envFile of [`.env.${process.env.NODE_ENV ?? "development"}`, ".env"]) {
+  for (const envFile of [
+    `.env.${process.env.NODE_ENV ?? "development"}`,
+    ".env",
+  ]) {
     const envPath = fileURLToPath(new URL(envFile, projectRootUrl));
     if (!existsSync(envPath)) {
       continue;
@@ -59,25 +42,16 @@ export function loadEnvFile(projectRootUrl: URL): void {
   }
 }
 
-let cached: (AppConfig & { basePath: AppConfig["BASE_PATH"] }) | undefined;
+let cached: AppConfig | undefined;
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
   if (cached) return cached;
-  let parsed;
   try {
-    parsed = schema(source);
+    cached = schema(source);
   } catch (error) {
-    console.error(
-      "Invalid environment configuration:",
-      error,
-    );
+    console.error("Invalid environment configuration:", error);
     process.exit(1);
   }
-  const data = parsed as unknown as AppConfig;
-  cached = {
-    ...data,
-    basePath: normalizeBasePath(data.BASE_PATH ?? ""),
-  };
   return cached;
 }
 

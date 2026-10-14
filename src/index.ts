@@ -8,7 +8,6 @@ import { readFile, writeFile } from "node:fs/promises";
 import type { Server as HttpServer } from "node:http";
 import pkg from "../package.json" with { type: "json" };
 
-
 export interface RunningServer {
   httpServer: HttpServer;
   terminate(): Promise<void>;

@@ -105,7 +105,10 @@ describe("typescriptAssets", () => {
       await writeFile(outsideFile, "console.log('should not be reachable');\n");
       try {
         const middleware = serveTypeScriptAssets(dir);
-        const { req, res, next, calledNext } = fakeReqRes("GET", "/../outside.ts");
+        const { req, res, next, calledNext } = fakeReqRes(
+          "GET",
+          "/../outside.ts",
+        );
         await new Promise<void>((resolve) => {
           middleware(req, res, (...args) => {
             next(...args);

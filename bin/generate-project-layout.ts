@@ -27,7 +27,6 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { parse } from "yaml";
 
-
 const root = resolve(import.meta.dirname, "..");
 
 const KNOWN_DESCRIPTIONS: Record<string, string> = {
@@ -67,17 +66,22 @@ async function getDescription(path: string) {
   }
   const description = m[1] ?? m[2] ?? m[3] ?? m[4];
   // rebase links
-  return description.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (original, text, link) => {
-    if (/^(?:\/|\w+:\/)/.test(link)) {
-      return original;
-    }
-    const rel = relative(resolve(root, 'docs'), resolve(dirname(path), link));
-    return `[${text}](${rel})`;
-  });
+  return description.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (original, text, link) => {
+      if (/^(?:\/|\w+:\/)/.test(link)) {
+        return original;
+      }
+      const rel = relative(resolve(root, "docs"), resolve(dirname(path), link));
+      return `[${text}](${rel})`;
+    },
+  );
 }
 
-
-async function sourceTree(root: string, ignored: string[]): Promise<PathInfo[]> {
+async function sourceTree(
+  root: string,
+  ignored: string[],
+): Promise<PathInfo[]> {
   const entries = await readdir(root, { withFileTypes: true });
   const results = [];
   for (const entry of entries) {
@@ -110,7 +114,7 @@ async function sourceTree(root: string, ignored: string[]): Promise<PathInfo[]> 
         results.push(entInfo);
       }
     } else {
-      entInfo.description = entInfo.description ?? await getDescription(path);
+      entInfo.description = entInfo.description ?? (await getDescription(path));
       results.push(entInfo);
     }
   }
@@ -136,20 +140,22 @@ function flatten(sources: PathInfo[], root?: string): PathInfo[] {
   return results;
 }
 async function sortedSources(): Promise<PathInfo[]> {
-  
   const ignored: string[] = [`${resolve(root, ".git")}/`];
   let ignorePatterns: string[] = [];
   try {
     ignorePatterns = (await readFile(resolve(root, ".gitignore"), "utf8"))
       .split("\n")
-      .map((t) => t.replace(/#.*/, ''))
+      .map((t) => t.replace(/#.*/, ""))
       .filter((a) => !!a.trim());
   } catch {
     // No .gitignore
   }
   ignorePatterns.push("**/.folder");
   for (const pattern of ignorePatterns) {
-    for (const matched of globSync(pattern, { cwd: root, withFileTypes: true })) {
+    for (const matched of globSync(pattern, {
+      cwd: root,
+      withFileTypes: true,
+    })) {
       ignored.push(
         resolve(matched.parentPath, matched.name) +
           (matched.isDirectory() ? "/" : ""),
@@ -163,7 +169,7 @@ let maxName = -1;
 let maxDesc = -1;
 const sources = await sortedSources();
 for (const entry of sources) {
-  const rel = relative(resolve(root, 'docs'), entry.path) || '.';
+  const rel = relative(resolve(root, "docs"), entry.path) || ".";
   entry.rep = `${new Array(entry.depth).fill("·\u2000\u2000").join("")}[${entry.name}${entry.dir ? "/" : ""}](${rel})`;
   maxName = Math.max(maxName, entry.rep.length);
   maxDesc = Math.max(maxDesc, entry.description?.length ?? 0);

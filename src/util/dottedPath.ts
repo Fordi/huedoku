@@ -8,7 +8,11 @@ function splitPath(path: string): string[] {
 export function getAtPath(value: unknown, path: string): unknown {
   let current = value;
   for (const segment of splitPath(path)) {
-    if (current === null || typeof current !== "object" || Array.isArray(current))
+    if (
+      current === null ||
+      typeof current !== "object" ||
+      Array.isArray(current)
+    )
       return undefined;
     current = (current as Record<string, unknown>)[segment];
   }

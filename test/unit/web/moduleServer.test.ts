@@ -100,7 +100,10 @@ describe("moduleServer", () => {
   it("rejects a malformed package name with 400", async () => {
     await withTempProject({ zod: "^4.0.0" }, async (dir) => {
       const middleware = serveModules(new URL(`file://${dir}/`));
-      const { req, res, state } = fakeReqRes("GET", "/modules/../../etc/passwd");
+      const { req, res, state } = fakeReqRes(
+        "GET",
+        "/modules/../../etc/passwd",
+      );
       await new Promise<void>((resolve) => {
         const origSend = res.send.bind(res) as (b: string) => void;
         (res as any).send = (b: string) => {
@@ -144,7 +147,9 @@ describe("moduleServer", () => {
       const start = Date.now();
       const second = fakeReqRes("GET", "/modules/zod");
       await new Promise<void>((resolve) => {
-        const origSend = second.res.send.bind(second.res) as (b: string) => void;
+        const origSend = second.res.send.bind(second.res) as (
+          b: string,
+        ) => void;
         (second.res as any).send = (b: string) => {
           origSend(b);
           resolve();

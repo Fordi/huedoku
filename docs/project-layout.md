@@ -1,5 +1,5 @@
 | Path                                                                   | Description                                                                |
-|------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | [bin/](../bin)                                                         | CLI scripts                                                                |
 | ·  [build-static.ts](../bin/build-static.ts)                           | build the client as a static site (default: dist/)                         |
 | ·  [generate-project-layout.ts](../bin/generate-project-layout.ts)     | Generate markdown source tree with first-line comment and .folder info     |

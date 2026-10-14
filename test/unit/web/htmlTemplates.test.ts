@@ -17,7 +17,9 @@ async function withTempDir(fn: (dir: string) => Promise<void>): Promise<void> {
 
 function fakeReqRes(method: string, reqPath: string) {
   const req = { method, path: reqPath } as Request;
-  const state: { status?: number; type?: string; body?: string } = { status: 200 };
+  const state: { status?: number; type?: string; body?: string } = {
+    status: 200,
+  };
   const res = {
     status(code: number) {
       state.status = code;
@@ -91,7 +93,10 @@ describe("htmlTemplates", () => {
   it("resolves a bare directory path (with or without trailing slash) to its index.html", async () => {
     await withTempDir(async (dir) => {
       await mkdir(path.join(dir, "admin"));
-      await writeFile(path.join(dir, "admin", "index.html"), "<p>admin index</p>");
+      await writeFile(
+        path.join(dir, "admin", "index.html"),
+        "<p>admin index</p>",
+      );
       const middleware = serveHtmlTemplates(dir, dummyProjectRoot);
 
       for (const reqPath of ["/admin", "/admin/"]) {

@@ -11,7 +11,11 @@ export type NextArg = string | undefined | true | false | QuickResponse | Error;
 export type MiddlewareResponse = NextArg | Promise<NextArg>;
 
 export function via(
-  handler: (req: Request, res: Response, next: NextFunction) => MiddlewareResponse,
+  handler: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => MiddlewareResponse,
 ): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
     let result: Awaited<MiddlewareResponse> | unknown;
@@ -35,7 +39,9 @@ export function via(
           const respond = part.trim().replace(/q=[\d.]+/g, "");
           return {
             respondWith: respond === "*/*" ? undefined : respond,
-            match: new RegExp(respond.replace(/\*/g, ".*").replace(/\+/g, "\\+")),
+            match: new RegExp(
+              respond.replace(/\*/g, ".*").replace(/\+/g, "\\+"),
+            ),
           };
         });
       const cls = result.constructor.name;
@@ -64,9 +70,12 @@ export function via(
       if (status === 204 || content === undefined) {
         res.end();
       } else {
-        type ??= typeof content === "object" ? "application/json" : "text/plain";
+        type ??=
+          typeof content === "object" ? "application/json" : "text/plain";
         content =
-          type === "application/json" ? JSON.stringify(content) : String(content);
+          type === "application/json"
+            ? JSON.stringify(content)
+            : String(content);
         res.type(type).send(String(content));
       }
       return;

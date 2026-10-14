@@ -30,7 +30,10 @@ describe("webDependencies", () => {
     await withTempProject(
       { dependencies: {}, webDependencies: { zod: "^4.0.0" } },
       async (dir) => {
-        await symlink(path.resolve("node_modules"), path.join(dir, "node_modules"));
+        await symlink(
+          path.resolve("node_modules"),
+          path.join(dir, "node_modules"),
+        );
         await reconcileWebDependencies(new URL(`file://${dir}/`));
         const pkg = JSON.parse(
           await readFile(path.join(dir, "package.json"), "utf8"),
@@ -44,7 +47,10 @@ describe("webDependencies", () => {
     await withTempProject(
       { dependencies: { zod: "^4.4.3" }, webDependencies: { zod: "^3.0.0" } },
       async (dir) => {
-        await symlink(path.resolve("node_modules"), path.join(dir, "node_modules"));
+        await symlink(
+          path.resolve("node_modules"),
+          path.join(dir, "node_modules"),
+        );
         await reconcileWebDependencies(new URL(`file://${dir}/`));
         const pkg = JSON.parse(
           await readFile(path.join(dir, "package.json"), "utf8"),
@@ -61,7 +67,10 @@ describe("webDependencies", () => {
         webDependencies: { "totally-not-a-real-package-xyz": "^1.0.0" },
       },
       async (dir) => {
-        await symlink(path.resolve("node_modules"), path.join(dir, "node_modules"));
+        await symlink(
+          path.resolve("node_modules"),
+          path.join(dir, "node_modules"),
+        );
         await assert.rejects(
           () => reconcileWebDependencies(new URL(`file://${dir}/`)),
           (err: unknown) => {
@@ -81,21 +90,30 @@ describe("webDependencies", () => {
         webDependencies: { "totally-not-a-real-package-xyz": "^2.0.0" },
       },
       async (dir) => {
-        await symlink(path.resolve("node_modules"), path.join(dir, "node_modules"));
+        await symlink(
+          path.resolve("node_modules"),
+          path.join(dir, "node_modules"),
+        );
         await assert.rejects(() =>
           reconcileWebDependencies(new URL(`file://${dir}/`)),
         );
         const pkg = JSON.parse(
           await readFile(path.join(dir, "package.json"), "utf8"),
         );
-        assert.equal(pkg.dependencies["totally-not-a-real-package-xyz"], "^2.0.0");
+        assert.equal(
+          pkg.dependencies["totally-not-a-real-package-xyz"],
+          "^2.0.0",
+        );
       },
     );
   });
 
   it("loadAllowedWebDependencyNames returns exactly the webDependencies keys", async () => {
     await withTempProject(
-      { dependencies: {}, webDependencies: { zod: "^4.0.0", express: "^5.0.0" } },
+      {
+        dependencies: {},
+        webDependencies: { zod: "^4.0.0", express: "^5.0.0" },
+      },
       async (dir) => {
         const names = await loadAllowedWebDependencyNames(
           new URL(`file://${dir}/`),
@@ -107,7 +125,9 @@ describe("webDependencies", () => {
 
   it("loadAllowedWebDependencyNames returns an empty set when webDependencies is absent", async () => {
     await withTempProject({ dependencies: { zod: "^4.0.0" } }, async (dir) => {
-      const names = await loadAllowedWebDependencyNames(new URL(`file://${dir}/`));
+      const names = await loadAllowedWebDependencyNames(
+        new URL(`file://${dir}/`),
+      );
       assert.equal(names.size, 0);
     });
   });

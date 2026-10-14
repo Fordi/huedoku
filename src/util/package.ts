@@ -14,7 +14,8 @@ type Person =
       name: string;
     });
 
-type Exports = null | string | Array<string | ExportConditions> | ExportConditions;
+type Exports =
+  null | string | Array<string | ExportConditions> | ExportConditions;
 
 type ExportConditions = {
   [condition: string]: Exports;

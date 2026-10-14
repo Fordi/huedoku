@@ -557,17 +557,19 @@ export function Huedoku(props: {
       </div>
       <div class="hd-board">
         ${
-        niceMoves > 0 &&
-        html`
-          <div
-            key=${niceMoves}
-            class="hd-shimmer"
-            aria-hidden="true"
-            style=${`--colors: ${puzzle.colors.join(", ")}, ${puzzle.colors[0]}`}
-          ></div>
-          <p key=${`t${niceMoves}`} class="hd-nice" role="status">Nice move!</p>
-        `
-      }
+          niceMoves > 0 &&
+          html`
+            <div
+              key=${niceMoves}
+              class="hd-shimmer"
+              aria-hidden="true"
+              style=${`--colors: ${puzzle.colors.join(", ")}, ${puzzle.colors[0]}`}
+            ></div>
+            <p key=${`t${niceMoves}`} class="hd-nice" role="status">
+              Nice move!
+            </p>
+          `
+        }
         <div
           ref=${gridRef}
           class="hd-grid"

@@ -88,9 +88,18 @@ export default function ResourceTable<
             .filter((r): r is Resource => !!r),
         );
       })
-      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size, sort, props.search, props.resource.generation, props.refreshKey]);
+  }, [
+    page,
+    size,
+    sort,
+    props.search,
+    props.resource.generation,
+    props.refreshKey,
+  ]);
 
   const resources = data?.resources as Record<ID, Resource> | undefined;
   const rows = (data?.results ?? [])
@@ -163,7 +172,10 @@ export default function ResourceTable<
                             columnData === undefined || columnData === null
                               ? undefined
                               : String(columnData);
-                          return html`<td key=${col.props.label} title=${titleText}>
+                          return html`<td
+                            key=${col.props.label}
+                            title=${titleText}
+                          >
                             ${render(columnData, name, row)}
                           </td>`;
                         })}

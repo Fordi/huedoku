@@ -232,7 +232,10 @@ describe("useResource", () => {
     const { result } = renderHook(() => useResource<string, Item>({ key }));
 
     await assert.rejects(() => result.current.list(), /no list\(\) configured/);
-    await assert.rejects(() => result.current.get("a"), /no get\(\) configured/);
+    await assert.rejects(
+      () => result.current.get("a"),
+      /no get\(\) configured/,
+    );
     await assert.rejects(
       () => result.current.create({}),
       /no create\(\) configured/,

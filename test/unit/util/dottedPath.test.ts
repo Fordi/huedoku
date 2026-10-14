@@ -21,7 +21,10 @@ describe("dottedPath", () => {
   });
 
   it("getAtPath returns undefined rather than throwing when an intermediate segment isn't an object", () => {
-    assert.equal(getAtPath({ auth: "not an object" }, "auth.password"), undefined);
+    assert.equal(
+      getAtPath({ auth: "not an object" }, "auth.password"),
+      undefined,
+    );
     assert.equal(getAtPath(null, "password"), undefined);
     assert.equal(getAtPath("a string", "password"), undefined);
   });
@@ -73,6 +76,10 @@ describe("dottedPath", () => {
   it("withAtPath leaves sibling fields untouched", () => {
     const original = { host: "h", username: "u", password: "secret" };
     const result = withAtPath(original, "password", "[REDACTED]");
-    assert.deepEqual(result, { host: "h", username: "u", password: "[REDACTED]" });
+    assert.deepEqual(result, {
+      host: "h",
+      username: "u",
+      password: "[REDACTED]",
+    });
   });
 });

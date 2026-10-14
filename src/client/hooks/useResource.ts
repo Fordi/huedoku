@@ -167,7 +167,9 @@ export default function useResource<
       });
 
       for (const id of page.results) {
-        const resource = (page.resources as Record<string, Resource>)[String(id)];
+        const resource = (page.resources as Record<string, Resource>)[
+          String(id)
+        ];
         if (resource !== undefined) {
           cache.entries.set(id, { resource, fetchedAt: now });
         }
@@ -196,7 +198,9 @@ export default function useResource<
       }
       const { get: doGet } = specRef.current;
       if (!doGet)
-        throw new Error(`useResource(${specRef.current.key}): no get() configured`);
+        throw new Error(
+          `useResource(${specRef.current.key}): no get() configured`,
+        );
       const resource = await doGet(id);
       cache.entries.set(id, { resource, fetchedAt: Date.now() });
       notify();

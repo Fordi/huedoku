@@ -76,7 +76,10 @@ export function typedVia<const S extends TypedViaSchema>(
       source,
       schema[source] ? z.object(schema[source]) : undefined,
     ]),
-  ) as Record<(typeof SOURCES)[number], ReturnType<typeof z.object> | undefined>;
+  ) as Record<
+    (typeof SOURCES)[number],
+    ReturnType<typeof z.object> | undefined
+  >;
 
   const handlerFn = via(async (req: Request, res, next) => {
     const issues: Record<string, unknown> = {};

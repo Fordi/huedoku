@@ -81,12 +81,17 @@ export async function reconcileWebDependencies(
   }
 }
 
-function isResolvable(packageName: string, projectRootUrl: string | URL): boolean {
+function isResolvable(
+  packageName: string,
+  projectRootUrl: string | URL,
+): boolean {
   try {
     // A synthetic module specifier under the project root, purely to give
     // resolve() a parent context anchored at this project's node_modules.
     const base =
-      typeof projectRootUrl === "string" ? new URL(projectRootUrl) : projectRootUrl;
+      typeof projectRootUrl === "string"
+        ? new URL(projectRootUrl)
+        : projectRootUrl;
     import.meta.resolve(packageName, new URL("package.json", base).toString());
     return true;
   } catch {
