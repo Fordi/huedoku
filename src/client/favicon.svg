@@ -1,9 +1,0 @@
-<!-- site icon: four region colors, one found -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#1b1b1b"/>
-  <rect x="3" y="3" width="12" height="12" rx="4" fill="#e6194b"/>
-  <rect x="17" y="3" width="12" height="12" rx="4" fill="#4363d8"/>
-  <rect x="3" y="17" width="12" height="12" rx="4" fill="#ffe119"/>
-  <rect x="17" y="17" width="12" height="12" rx="4" fill="#3cb44b"/>
-  <path d="M19.5 9l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

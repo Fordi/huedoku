@@ -3,4 +3,14 @@ coverage
 dist
 node_modules
 .env
-dist/
+src/
+test/
+docs/
+bin/
+.env.example
+.nvmrc
+eslint.config.js
+package-lock.json
+package.json
+README.md
+tsconfig.json
